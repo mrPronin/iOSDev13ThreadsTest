@@ -8,6 +8,12 @@
 
 #import "RITAppDelegate.h"
 
+@interface RITAppDelegate ()
+
+@property (strong, nonatomic) NSMutableArray* array;
+
+@end
+
 @implementation RITAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -16,7 +22,84 @@
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
+    
+    // one background thread
+    // [self performSelectorInBackground:@selector(testThread) withObject:nil];
+    
+    // one thread
+    /*
+    NSThread*   thread  = [[NSThread alloc] initWithTarget:self selector:@selector(testThread) object:nil];
+    [thread start];
+    
+    
+    BOOL isMainThread = [[NSThread currentThread] isMainThread];
+    
+    for (int i = 0; i < 10; i++) {
+        NSThread* thread    = [[NSThread alloc] initWithTarget:self selector:@selector(testThread) object:nil];
+        thread.name         = [NSString stringWithFormat:@"Thread #%d", i + 1];
+        [thread start];
+    }
+    
+    
+    NSThread* thread01    = [[NSThread alloc] initWithTarget:self selector:@selector(addStringToArray:) object:@"x"];
+    NSThread* thread02    = [[NSThread alloc] initWithTarget:self selector:@selector(addStringToArray:) object:@"0"];
+    thread01.name         = @"Thread 01";
+    thread02.name         = @"Thread 02";
+    [thread01 start];
+    [thread02 start];
+    
+    self.array = [NSMutableArray array];
+    
+    [self performSelector:@selector(printArray) withObject:nil afterDelay:3];
+    */
+    
+    
     return YES;
+}
+
+- (void) testThread {
+    
+    @autoreleasepool {
+        
+        double startTime = CACurrentMediaTime();
+        
+        NSLog(@"%@ started", [[NSThread currentThread] name]);
+        
+        for (int i = 0; i < 20000000; i++) {
+            // NSLog(@"%05d", i);
+        }
+        
+        NSLog(@"%@ finished in %f", [[NSThread currentThread] name], CACurrentMediaTime() - startTime);
+    }
+    
+}
+
+- (void) addStringToArray: (NSString*) string {
+    @autoreleasepool {
+        
+        double startTime = CACurrentMediaTime();
+        
+        NSLog(@"%@ started", [[NSThread currentThread] name]);
+        
+        @synchronized(self){
+            
+            NSLog(@"%@ calculation started", [[NSThread currentThread] name]);
+            
+            for (int i = 0; i < 200000; i++) {
+                [self.array addObject:string];
+            }
+            
+            NSLog(@"%@ calculation ended", [[NSThread currentThread] name]);
+            
+        }
+        
+        
+        NSLog(@"%@ finished in %f", [[NSThread currentThread] name], CACurrentMediaTime() - startTime);
+    }
+}
+
+- (void) printArray {
+    NSLog(@"%@", self.array);
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
