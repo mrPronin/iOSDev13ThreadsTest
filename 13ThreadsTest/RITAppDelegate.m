@@ -51,7 +51,62 @@
     self.array = [NSMutableArray array];
     
     [self performSelector:@selector(printArray) withObject:nil afterDelay:3];
+    
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    
+    dispatch_async(queue, ^{
+        
+        double startTime = CACurrentMediaTime();
+        
+        NSLog(@"%@ started", [[NSThread currentThread] name]);
+        
+        for (int i = 0; i < 20000000; i++) {
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"%@ finished in %f", [[NSThread currentThread] name], CACurrentMediaTime() - startTime);
+        });
+        
+    });
+    
+    self.array = [NSMutableArray array];
+    
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    
+    dispatch_async(queue, ^{
+        [self addStringToArray:@"x"];
+        
+    });
+    
+    dispatch_async(queue, ^{
+        [self addStringToArray:@"0"];
+        
+    });
+    
+    [self performSelector:@selector(printArray) withObject:nil afterDelay:3];
     */
+    
+    self.array = [NSMutableArray array];
+    
+    dispatch_queue_t queue = dispatch_queue_create("com.rit.testthreads.queue", DISPATCH_QUEUE_SERIAL);
+    
+    __weak id weakSelf = self;
+    
+    dispatch_async(queue, ^{
+        [weakSelf addStringToArray:@"x"];
+    });
+    
+    dispatch_async(queue, ^{
+        [weakSelf addStringToArray:@"0"];
+    });
+    
+    dispatch_async(queue, ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // UI refresh
+        });
+    });
+    
+    [self performSelector:@selector(printArray) withObject:nil afterDelay:3];
     
     
     return YES;
@@ -81,7 +136,7 @@
         
         NSLog(@"%@ started", [[NSThread currentThread] name]);
         
-        @synchronized(self){
+        //@synchronized(self){
             
             NSLog(@"%@ calculation started", [[NSThread currentThread] name]);
             
@@ -91,7 +146,7 @@
             
             NSLog(@"%@ calculation ended", [[NSThread currentThread] name]);
             
-        }
+        //}
         
         
         NSLog(@"%@ finished in %f", [[NSThread currentThread] name], CACurrentMediaTime() - startTime);
